@@ -6,6 +6,7 @@ class AppTextStyles {
   static const TextStyle header = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.normal,
+    letterSpacing: -0.5,
     height: 28 / 20, // lineHeight / fontSize
     color: AppColors.grayscale100,
   );
@@ -14,6 +15,7 @@ class AppTextStyles {
   static const TextStyle body18R = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.normal,
+    letterSpacing: -0.5,
     height: 26 / 18,
     color: AppColors.grayscale100,
   );
@@ -43,6 +45,13 @@ class AppTextStyles {
     fontSize: 15,
     fontWeight: FontWeight.normal,
     height: 23 / 15,
+    color: AppColors.grayscale100,
+  );
+
+  static const TextStyle body14M = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 22 / 14,
     color: AppColors.grayscale100,
   );
   

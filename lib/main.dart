@@ -5,7 +5,6 @@ import 'package:mitjul_app_new/screens/auth/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -25,8 +24,9 @@ class MitjulApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       
       theme: ThemeData(
+        fontFamily: 'Suit',
         useMaterial3: true,
-        colorScheme: ColorScheme.light(
+        colorScheme: ColorScheme.light(  
           primary: AppColors.primary0,
           secondary: AppColors.secondary0,
           surface: AppColors.background,
@@ -43,6 +43,7 @@ class MitjulApp extends StatelessWidget {
       ),
       
       darkTheme: ThemeData(
+        fontFamily: 'Suit',
         useMaterial3: true,
         colorScheme: ColorScheme.dark(
           primary: AppColors.primary0,

@@ -1,10 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mitjul_app_new/constants/colors.dart';
 import 'package:mitjul_app_new/constants/text_styles.dart';
 import 'package:mitjul_app_new/services/auth_service.dart';
-import 'package:mitjul_app_new/screens/home/home_screen.dart';
-import 'package:mitjul_app_new/services/auth_service.dart';
-
+import 'package:mitjul_app_new/screens/onboarding/onboarding_flow.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -75,25 +74,52 @@ class LoginScreen extends StatelessWidget {
               ),
               
               SizedBox(height: 12),
-              _SocialLoginButton(
+                _SocialLoginButton(
                 text: 'Google로 시작하기',
                 backgroundColor: Colors.white,
-                textColor: Color(0xFF191919),
+                textColor: AppColors.grayscale70,
                 borderColor: AppColors.grayscale30,
                 onTap: () async {
-                    final authService = AuthService();
-                    final result = await authService.signInWithGoogle();
-                    
-                    if (result != null) {
-                    // 로그인 성공!
-                    print('로그인 성공: ${result.user?.email}');
-                    // TODO: 홈 화면으로 이동
-                    } else {
-                    // 로그인 실패 또는 취소
-                    print('로그인 실패');
+                  // 로딩 표시
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+
+                  final authService = AuthService();
+                  final result = await authService.signInWithGoogle();
+                  
+                  // 로딩 닫기
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                  
+                  if (result != null && context.mounted) {
+                    // 로그인 성공 - 온보딩 플로우로 이동
+                    if (kDebugMode) {
+                      debugPrint('Google 로그인 성공: ${result.user?.email}');
                     }
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const OnboardingFlow(),
+                      ),
+                    );
+                  } else {
+                    // 로그인 실패 또는 취소
+                    if (kDebugMode) {
+                      debugPrint('Google 로그인 실패');
+                    }
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Google 로그인에 실패했습니다.')),
+                      );
+                    }
+                  }
                 },
-                ),
+              ),
 
               
               SizedBox(height: 12),
@@ -130,11 +156,11 @@ class LoginScreen extends StatelessWidget {
                     Navigator.of(context).pop();
                   }
 
-                  // 로그인 성공 시 홈 화면으로 이동
+                  // 로그인 성공 시 온보딩 플로우로 이동
                   if (userCredential != null && context.mounted) {
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
+                        builder: (context) => const OnboardingFlow(),
                       ),
                     );
                   } else {
@@ -148,7 +174,7 @@ class LoginScreen extends StatelessWidget {
                 },
                 child: Text(
                   '비회원으로 시작하기',
-                  style: AppTextStyles.body16M.copyWith(
+                  style: AppTextStyles.body15R.copyWith(
                     color: AppColors.grayscale60,
                   ),
                 ),

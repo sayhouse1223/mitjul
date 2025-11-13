@@ -36,7 +36,7 @@ class AppColors {
   static const Color backgroundDark = grayscale100;
   static const Color surface = grayscale10;
   static const Color surfaceDark = grayscale90;
-  static const Color textPrimary = grayscale100;
+  static const Color textPrimary = grayscale70;
   static const Color textSecondary = grayscale60;
   static const Color textTertiary = grayscale40;
   static const Color divider = grayscale20;
