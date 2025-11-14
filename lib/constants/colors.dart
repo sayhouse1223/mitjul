@@ -13,9 +13,9 @@ class AppColors {
   static const Color secondaryMinus30 = Color(0xFFF1F9E7);
   
   // Point Colors
-  static const Color point1Error = Color(0xFFF8B157);
+  static const Color point1Error = Color(0xFFFB6157);
   static const Color point1bg = Color(0xFFFFF4F3);
-  static const Color point2 = Color(0xFFFBD24C);
+  static const Color point2 = Color(0xFFF8D74C);
   static const Color point2bg = Color(0xFFFFFBEC);
   
   // Grayscale

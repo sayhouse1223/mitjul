@@ -63,10 +63,24 @@ class AppTextStyles {
   );
   
   // Caption
+  static const TextStyle caption12M = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    height: 20 / 12,
+    color: AppColors.grayscale100,
+  );
+
   static const TextStyle caption12R = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.normal,
     height: 20 / 12,
     color: AppColors.grayscale100,
+  );
+
+  // 10px Regular (아주 작은 텍스트)
+  static const TextStyle caption10R = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
   );
 }

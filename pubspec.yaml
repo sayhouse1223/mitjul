@@ -40,10 +40,12 @@ dependencies:
   provider: ^6.1.5+1
   flutter_svg: ^2.2.2
   cloud_firestore: ^6.1.0
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -51,7 +53,19 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
 
+# ⭐️ [2] 앱 아이콘 설정 블록 추가 ⭐️
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon.png" # 준비된 아이콘 이미지 경로 (assets 폴더에 있어야 함)
+  # Android 8.0 이상 Adaptive Icon 설정
+  min_sdk_android: 21
+  # Adaptive Icon의 배경색 (앱의 배경색에 맞춰 흰색으로 설정)
+  adaptive_icon_background: "#FFFFFF" 
+  # Adaptive Icon의 전경 이미지 (image_path와 동일하게 사용)
+  adaptive_icon_foreground: "assets/images/app_icon.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

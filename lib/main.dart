@@ -3,13 +3,27 @@ import 'package:mitjul_app_new/constants/colors.dart';
 import 'package:mitjul_app_new/constants/text_styles.dart';
 import 'package:mitjul_app_new/screens/auth/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'firebase_options.dart';
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // ⭐️ [이동/삽입] 익명 로그인 처리 로직을 main 함수 내부에 삽입 ⭐️
+  final auth = FirebaseAuth.instance;
+  if (auth.currentUser == null) {
+    try {
+      await auth.signInAnonymously();
+      debugPrint('✅ 익명 로그인 성공: ${auth.currentUser!.uid}'); 
+    } catch (e) {
+      debugPrint('❌ 익명 로그인 실패: $e'); 
+    }
+  }
   runApp(const MitjulApp());
 }
 
