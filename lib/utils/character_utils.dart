@@ -7,7 +7,7 @@ class CharacterColors {
   static const List<Color> colors = [
     AppColors.primary10, //dark blue
     AppColors.primary0, //blue
-    AppColors.secondary0, //green
+    AppColors.secondary10, //green
     AppColors.point1Error, //red
     AppColors.point2, //yellow
   ];

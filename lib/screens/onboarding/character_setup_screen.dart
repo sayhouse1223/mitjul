@@ -1,5 +1,3 @@
-// lib/screens/onboarding/character_setup_screen.dart (수정)
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -29,12 +27,24 @@ class _CharacterSetupScreenState extends State<CharacterSetupScreen>
     super.initState();
     // 탭 개수에 맞게 컨트롤러 초기화
     _tabController = TabController(length: 3, vsync: this);
+    
+    // 탭 전환 시 상태 갱신을 위해 리스너 추가 (탭 바 색상 갱신용)
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+  
+  // ⭐️ [NEW] 탭 전환 함수: 자식 위젯에 전달하여 사용 ⭐️
+  void _switchToTab(CharacterTab tab) {
+    _tabController.animateTo(tab.index);
   }
 
   @override
@@ -60,45 +70,78 @@ class _CharacterSetupScreenState extends State<CharacterSetupScreen>
             // 캐릭터 미리보기 (기존 로직 유지)
             Consumer<OnboardingProvider>(
               builder: (context, provider, child) {
-                // ... (캐릭터 미리보기 위젯 로직) ...
-                // 코드 길이 상, 캐릭터 미리보기 위젯 로직은 기존 코드를 그대로 사용한다고 가정합니다.
+                
+                // 1. ⭐️ [수정] '절대 초기 상태'를 정의합니다. (모든 항목이 -1일 때만 true) ⭐️
+                final isInitialState = provider.characterBody == -1 && 
+                                       provider.characterEye == -1 && 
+                                       provider.characterColor == -1;
+                // 2. 렌더링에 사용할 인덱스: -1이 아닌 경우만 사용
+                final bodyIndex = provider.characterBody;
+                final eyeIndex = provider.characterEye;
+                final colorIndex = provider.characterColor;
+                //3. ⭐️ 배경색 결정 ⭐️
+                //    - 초기 상태일 경우: grayscale10
+                //    - 색상이 선택된 경우: 선택된 색상
+                //    - 색상은 선택되지 않았지만 다른 요소가 선택된 경우: grayscale10 유지
+                final containerColor = (isInitialState || colorIndex == -1)
+                    ? AppColors.grayscale10
+                    : CharacterColors.getBackgroundColor(colorIndex);
+                
                 return Container(
                   width: 200,
                   height: 200,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: CharacterColors.getBackgroundColor(provider.characterColor),
+                  shape: BoxShape.circle,
+                  color: containerColor,
                   ),
                   child: Center(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Transform.scale(
-                          scale: 1.8,
-                          child: SvgPicture.asset(
-                            CharacterAssets.getBodyPath(provider.characterBody),
-                            width: 60,
-                            height: 60,
-                            colorFilter: ColorFilter.mode(
-                              CharacterColors.getColor(provider.characterColor),
-                              BlendMode.srcIn,
+                    // 4. ⭐️ 표시할 내용 결정 ⭐️
+                    child: isInitialState 
+                        ? Text(
+                            '?',
+                            style: AppTextStyles.header.copyWith(
+                              fontSize: 80,
+                              color: AppColors.grayscale30,
+                              fontWeight:FontWeight.w700,
                             ),
+                          )
+                        : Stack(alignment: Alignment.center,
+                            children: [
+                              // 4-1. ⭐️ 모양 (Body)이 선택되었을 때만 렌더링 ⭐️
+                              if (bodyIndex != -1)
+                                Transform.scale(
+                                  scale: 2.4,
+                                  child: SvgPicture.asset(
+                                    CharacterAssets.getBodyPath(bodyIndex),
+                                    width: 60,
+                                    height: 60,
+                                    colorFilter: ColorFilter.mode(
+                                      // 색상이 선택되었으면 선택된 색상, 아니면 grayscale30 적용
+                                      colorIndex != -1 
+                                          ? CharacterColors.getColor(colorIndex)
+                                          : AppColors.grayscale30, 
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                ),
+
+                              // 4-2. ⭐️ 눈 (Eye)이 선택되었을 때만 렌더링 ⭐️
+                              if (eyeIndex != -1)
+                                Transform.scale(
+                                  scale: 2.4,
+                                  child: SvgPicture.asset(
+                                    CharacterAssets.getEyePath(eyeIndex),
+                                    width: 60,
+                                    height: 60,
+                                  ),
+                                ),
+                            ],
                           ),
-                        ),
-                        Transform.scale(
-                          scale: 1.8,
-                          child: SvgPicture.asset(
-                            CharacterAssets.getEyePath(provider.characterEye),
-                            width: 60,
-                            height: 60,
-                          ),
-                        ),
-                      ],
                     ),
-                  ),
-                );
+                 );
               },
             ),
+          
             
             const SizedBox(height: 32),
             
@@ -138,10 +181,12 @@ class _CharacterSetupScreenState extends State<CharacterSetupScreen>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: const [
-                  _BodySelectionTab(),
-                  _EyeSelectionTab(),
-                  _ColorSelectionTab(),
+                children: [
+                  // ⭐️ [UPDATE] onSelect 콜백 전달: 모양 선택 시 -> 눈 탭으로 전환 ⭐️
+                  _BodySelectionTab(onSelect: () => _switchToTab(CharacterTab.eye)),
+                  // ⭐️ [UPDATE] onSelect 콜백 전달: 눈 선택 시 -> 색상 탭으로 전환 ⭐️
+                  _EyeSelectionTab(onSelect: () => _switchToTab(CharacterTab.color)),
+                  const _ColorSelectionTab(),
                 ],
               ),
             ),
@@ -170,10 +215,16 @@ class _CharacterSetupScreenState extends State<CharacterSetupScreen>
                   Expanded(
                     child: Consumer<OnboardingProvider>(
                       builder: (context, provider, child) {
-                        // 캐릭터 설정 단계는 선택 사항이 항상 유효하다고 가정하고 onPressed: () => provider.nextStep()
+                        // ⭐️ [FIX] 다음 버튼 활성화 조건 추가: 모양, 눈, 색상 모두 -1이 아닐 때만 활성화 ⭐️
+                        final bool isCharacterComplete = 
+                            provider.characterBody != -1 && 
+                            provider.characterEye != -1 && 
+                            provider.characterColor != -1;
+
                         return AppButton(
                           label: '다음',
-                          onPressed: () => provider.nextStep(),
+                          // isCharacterComplete가 true일 때만 nextStep 함수를 연결합니다.
+                          onPressed: isCharacterComplete ? () => provider.nextStep() : null,
                           type: ButtonType.primaryFill,
                           isLarge: true,
                         );
@@ -190,10 +241,11 @@ class _CharacterSetupScreenState extends State<CharacterSetupScreen>
   }
 }
 
-/// 캐릭터 몸 선택 탭 (기존 로직 유지)
+/// 캐릭터 몸 선택 탭
 class _BodySelectionTab extends StatelessWidget {
-// ... (기존 BodySelectionTab 코드 유지)
-  const _BodySelectionTab();
+  // ⭐️ [NEW] 선택 완료 후 호출될 콜백 함수 ⭐️
+  final VoidCallback onSelect;
+  const _BodySelectionTab({required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +266,10 @@ class _BodySelectionTab extends StatelessWidget {
               final isSelected = provider.characterBody == bodyIndex;
               
               return GestureDetector(
-                onTap: () => provider.setCharacterBody(bodyIndex),
+                onTap: () {
+                  provider.setCharacterBody(bodyIndex);
+                  onSelect(); // ⭐️ 선택 후 다음 탭으로 전환 요청 ⭐️
+                },
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.grayscale10,
@@ -229,10 +284,10 @@ class _BodySelectionTab extends StatelessWidget {
                       Center(
                         child: SvgPicture.asset(
                           CharacterAssets.getBodyPath(bodyIndex),
-                          width: 40,
-                          height: 40,
+                          width: 60,
+                          height: 60,
                           colorFilter: ColorFilter.mode(
-                            AppColors.grayscale40,
+                            AppColors.grayscale30,
                             BlendMode.srcIn,
                           ),
                         ),
@@ -267,10 +322,11 @@ class _BodySelectionTab extends StatelessWidget {
   }
 }
 
-/// 캐릭터 눈 선택 탭 (기존 로직 유지)
+/// 캐릭터 눈 선택 탭
 class _EyeSelectionTab extends StatelessWidget {
-// ... (기존 EyeSelectionTab 코드 유지)
-  const _EyeSelectionTab();
+  // ⭐️ [NEW] 선택 완료 후 호출될 콜백 함수 ⭐️
+  final VoidCallback onSelect;
+  const _EyeSelectionTab({required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +347,10 @@ class _EyeSelectionTab extends StatelessWidget {
               final isSelected = provider.characterEye == eyeIndex;
               
               return GestureDetector(
-                onTap: () => provider.setCharacterEye(eyeIndex),
+                onTap: () {
+                  provider.setCharacterEye(eyeIndex);
+                  onSelect(); // ⭐️ 선택 후 다음 탭으로 전환 요청 ⭐️
+                },
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.grayscale10,
@@ -306,8 +365,8 @@ class _EyeSelectionTab extends StatelessWidget {
                       Center(
                         child: SvgPicture.asset(
                           CharacterAssets.getEyePath(eyeIndex),
-                          width: 40,
-                          height: 40,
+                          width: 80,
+                          height: 80,
                         ),
                       ),
                       if (isSelected)
@@ -315,8 +374,8 @@ class _EyeSelectionTab extends StatelessWidget {
                           bottom: 4,
                           right: 4,
                           child: Container(
-                            width: 20,
-                            height: 20,
+                            width: 16,
+                            height: 16,
                             decoration: BoxDecoration(
                               color: AppColors.primary0,
                               shape: BoxShape.circle,
@@ -340,9 +399,8 @@ class _EyeSelectionTab extends StatelessWidget {
   }
 }
 
-/// 캐릭터 색상 선택 탭 (기존 로직 유지)
+/// 캐릭터 색상 선택 탭
 class _ColorSelectionTab extends StatelessWidget {
-// ... (기존 ColorSelectionTab 코드 유지)
   const _ColorSelectionTab();
 
   @override
@@ -361,8 +419,8 @@ class _ColorSelectionTab extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => provider.setCharacterColor(index),
                   child: Container(
-                    width: 56,
-                    height: 56,
+                    width: 46,
+                    height: 46,
                     decoration: BoxDecoration(
                       color: CharacterColors.getColor(index),
                       shape: BoxShape.circle,
