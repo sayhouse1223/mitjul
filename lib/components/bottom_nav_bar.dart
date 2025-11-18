@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mitjul_app_new/constants/colors.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mitjul_app_new/constants/colors.dart';
+import 'package:mitjul_app_new/models/user_profile.dart';
+import 'package:mitjul_app_new/utils/character_utils.dart'; 
 
 /// 하단 네비게이션 바 컴포넌트입니다.
 class BottomNaviBar extends StatelessWidget {
@@ -13,8 +17,10 @@ class BottomNaviBar extends StatelessWidget {
     required this.onItemTapped,
   });
 
-  // 프로필 이미지 위젯 (마이페이지 탭 전용)
+  // 프로필 이미지 위젯 (마이페이지 탭 전용) - 캐릭터 표시
   Widget _buildProfileIcon(bool isSelected) {
+    final user = FirebaseAuth.instance.currentUser;
+    
     // 32x32 크기의 CircleAvatar를 Container로 감싸 테두리를 추가합니다.
     return Container(
       width: 32,
@@ -29,18 +35,82 @@ class BottomNaviBar extends StatelessWidget {
             : null, // OFF 상태: 테두리 없음
       ),
       child: ClipOval(
-        child: Image.asset(
-          // 실제 유저 프로필 이미지 경로로 변경하세요.
-          'assets/images/user_profile.png', 
-          width: 32,
-          height: 32,
-          fit: BoxFit.cover,
-          // 이미지가 없을 경우를 대비한 플레이스홀더
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: AppColors.grayscale20, 
-            child: const Icon(Icons.person, color: AppColors.grayscale40, size: 20), 
-          ),
-        ),
+        child: user == null
+            ? Container(
+                color: AppColors.grayscale20,
+                child: const Icon(Icons.person, color: AppColors.grayscale40, size: 20),
+              )
+            : StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return Container(
+                      color: AppColors.grayscale20,
+                      child: const Icon(Icons.person, color: AppColors.grayscale40, size: 20),
+                    );
+                  }
+
+                  final profileData = snapshot.data!.data() as Map<String, dynamic>?;
+                  if (profileData == null) {
+                    return Container(
+                      color: AppColors.grayscale20,
+                      child: const Icon(Icons.person, color: AppColors.grayscale40, size: 20),
+                    );
+                  }
+
+                  final profile = UserProfile.fromJson(profileData);
+                  final bodyIndex = profile.characterBody;
+                  final eyeIndex = profile.characterEye;
+                  final colorIndex = profile.characterColor;
+
+                  // 캐릭터가 설정되지 않은 경우
+                  if (bodyIndex == -1 || eyeIndex == -1) {
+                    return Container(
+                      color: AppColors.grayscale20,
+                      child: const Icon(Icons.person, color: AppColors.grayscale40, size: 20),
+                    );
+                  }
+
+                  final containerColor = CharacterColors.getBackgroundColor(colorIndex);
+
+                  // 캐릭터 렌더링
+                  return Container(
+                    color: containerColor,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // 캐릭터 몸
+                        if (bodyIndex != -1)
+                          Transform.scale(
+                            scale: 1.0, // 작은 크기로 조정
+                            child: SvgPicture.asset(
+                              CharacterAssets.getBodyPath(bodyIndex),
+                              width: 24,
+                              height: 24,
+                              colorFilter: ColorFilter.mode(
+                                CharacterColors.getColor(colorIndex),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
+                        // 캐릭터 눈
+                        if (eyeIndex != -1)
+                          Transform.scale(
+                            scale: 1.0, // 작은 크기로 조정
+                            child: SvgPicture.asset(
+                              CharacterAssets.getEyePath(eyeIndex),
+                              width: 24,
+                              height: 24,
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }

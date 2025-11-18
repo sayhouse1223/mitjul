@@ -10,7 +10,7 @@ class AppSearchBar extends StatefulWidget {
   const AppSearchBar({
     super.key,
     required this.controller,
-    this.hintText = '검색어를 입력하세요',
+    this.hintText = '검색어 입력',
     this.onSubmitted,
     this.onChanged,
     this.onClear,
@@ -97,9 +97,9 @@ class _AppSearchBarState extends State<AppSearchBar> {
               onSubmitted: widget.onSubmitted,
               decoration: InputDecoration(
                 hintText: widget.hintText,
-                hintStyle: AppTextStyles.body16R.copyWith(
+                hintStyle: AppTextStyles.body15R.copyWith(
                   color: AppColors.grayscale40,
-                  fontSize: 16,
+                  fontSize: 15,
                 ),
                 border: InputBorder.none,
                 isDense: true,
@@ -107,21 +107,24 @@ class _AppSearchBarState extends State<AppSearchBar> {
               ),
             ),
           ),
-          IconButton(
-            onPressed: _currentValue.isNotEmpty
-                ? () {
-                    widget.controller.clear();
-                    widget.onClear?.call();
-                  }
-                : widget.onSearchTap ??
-                    () => widget.onSubmitted?.call(widget.controller.text),
-            icon: SvgPicture.asset(
-              _currentValue.isNotEmpty ? widget.deleteIconAsset : widget.searchIconAsset,
-              width: 24,
-              height: 24,
-              colorFilter: ColorFilter.mode(
-                _currentValue.isNotEmpty ? AppColors.grayscale50 : theme.colorScheme.primary,
-                BlendMode.srcIn,
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: IconButton(
+              onPressed: _currentValue.isNotEmpty
+                  ? () {
+                      widget.controller.clear();
+                      widget.onClear?.call();
+                    }
+                  : widget.onSearchTap ??
+                      () => widget.onSubmitted?.call(widget.controller.text),
+              icon: SvgPicture.asset(
+                _currentValue.isNotEmpty ? widget.deleteIconAsset : widget.searchIconAsset,
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  _currentValue.isNotEmpty ? AppColors.grayscale50 : theme.colorScheme.primary,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
           ),

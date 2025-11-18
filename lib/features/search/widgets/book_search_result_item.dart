@@ -12,6 +12,21 @@ class BookSearchResultItem extends StatelessWidget {
   final Book book;
   final ValueChanged<Book>? onTap;
 
+  // 이미지 URL을 안전하게 변환
+  String _getImageUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return 'https://placehold.co/70x100/E0E0E0/9E9E9E?text=No+Cover';
+    }
+    
+    // http://를 https://로 변환
+    String safeUrl = url.replaceFirst('http://', 'https://');
+    
+    // Google Books API의 이미지 URL은 직접 접근이 제한될 수 있음
+    // 원본 URL을 그대로 사용하되, http만 https로 변환
+    // 에러 발생 시 errorBuilder에서 placeholder를 표시함
+    return safeUrl;
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -30,11 +45,12 @@ class BookSearchResultItem extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                book.thumbnailUrl ?? 'https://placehold.co/70x100/E0E0E0/9E9E9E?text=No+Cover',
+                _getImageUrl(book.thumbnailUrl),
                 width: 60,
                 height: 88,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
                   return Container(
                     width: 60,
                     height: 88,
@@ -42,7 +58,32 @@ class BookSearchResultItem extends StatelessWidget {
                       color: AppColors.grayscale10,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.book, color: AppColors.grayscale40),
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  // Google Books 이미지 URL은 직접 접근이 제한될 수 있어
+                  // 에러 발생 시 placeholder 표시
+                  return Container(
+                    width: 60,
+                    height: 88,
+                    decoration: BoxDecoration(
+                      color: AppColors.grayscale10,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.book, color: AppColors.grayscale40, size: 30),
                   );
                 },
               ),
