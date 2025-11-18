@@ -79,7 +79,7 @@ class AppButton extends StatelessWidget {
           borderColor = AppColors.primaryMinus10;
           spinnerColor = AppColors.primaryMinus10;
         } else {
-          borderColor = AppColors.primary10;
+          borderColor = AppColors.primary0;
           spinnerColor = AppColors.primary0;
         }
         break;

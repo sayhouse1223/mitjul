@@ -7,6 +7,9 @@ import 'package:mitjul_app_new/constants/text_styles.dart';
 
 /// 온보딩 플로우 상태 관리 Provider
 class OnboardingProvider with ChangeNotifier {
+  // === 온보딩 핵심 상태 ===
+  bool _isOnboardingCompleted = false; // ⭐️ 앱 라우팅에 사용될 핵심 상태 ⭐️
+
   // Step 1: 장르 선택
   final List<String> _selectedGenres = [];
   
@@ -28,8 +31,52 @@ class OnboardingProvider with ChangeNotifier {
   int get characterColor => _characterColor;
   String get nickname => _nickname;
   int get currentStep => _currentStep;
+  bool get isOnboardingCompleted => _isOnboardingCompleted; // ⭐️ 라우팅용 Getter ⭐️
   
-  /// Step 1: 장르 토글
+  // 현재 사용자 ID
+  String? get _userId => FirebaseAuth.instance.currentUser?.uid;
+  DocumentReference? get _profileRef {
+    final userId = _userId;
+    if (userId == null) return null;
+    return FirebaseFirestore.instance.collection('users').doc(userId);
+  }
+
+  // === ⭐️ 핵심 로직 1: 온보딩 상태 로드 ⭐️ ===
+  /// 앱 시작 시 Firestore에서 온보딩 완료 상태를 로드합니다.
+  Future<void> loadOnboardingStatus() async {
+    final profileRef = _profileRef;
+    if (profileRef == null) {
+      if (kDebugMode) debugPrint('🚨 사용자 ID를 찾을 수 없습니다. 온보딩 상태 로드 불가.');
+      _isOnboardingCompleted = false;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final snapshot = await profileRef.get();
+      if (snapshot.exists) {
+        final data = snapshot.data() as Map<String, dynamic>?;
+        
+        // Firestore 필드에서 'isOnboardingCompleted' 플래그를 확인합니다.
+        _isOnboardingCompleted = data?['isOnboardingCompleted'] ?? false;
+        
+        if (kDebugMode) {
+          debugPrint('✅ 온보딩 상태 로드 완료: $_isOnboardingCompleted');
+        }
+      } else {
+        // 문서가 없으면 처음 접속한 것으로 간주하고 false 유지
+        _isOnboardingCompleted = false;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('🚨 온보딩 상태 로드 중 오류 발생: $e');
+      _isOnboardingCompleted = false; // 오류 시 온보딩으로 이동
+    }
+    
+    // AuthWrapper가 상태 변화를 감지하도록 알립니다.
+    notifyListeners(); 
+  }
+  
+  // Step 1: 장르 토글
   void toggleGenre(String genre) {
     if (_selectedGenres.contains(genre)) {
       _selectedGenres.remove(genre);
@@ -39,38 +86,38 @@ class OnboardingProvider with ChangeNotifier {
     notifyListeners();
   }
   
-  /// Step 1: 모든 장르 선택
+  // Step 1: 모든 장르 선택
   void selectAllGenres(List<String> allGenres) {
     _selectedGenres.clear();
     _selectedGenres.addAll(allGenres);
     notifyListeners();
   }
   
-  /// Step 1: 모든 장르 선택 해제
+  // Step 1: 모든 장르 선택 해제
   void deselectAllGenres() {
     _selectedGenres.clear();
     notifyListeners();
   }
   
-  /// Step 2: 캐릭터 몸 선택
+  // Step 2: 캐릭터 몸 선택
   void setCharacterBody(int body) {
     _characterBody = body;
     notifyListeners();
   }
   
-  /// Step 2: 캐릭터 눈 선택
+  // Step 2: 캐릭터 눈 선택
   void setCharacterEye(int eye) {
     _characterEye = eye;
     notifyListeners();
   }
   
-  /// Step 2: 캐릭터 색상 선택
+  // Step 2: 캐릭터 색상 선택
   void setCharacterColor(int color) {
     _characterColor = color;
     notifyListeners();
   }
   
-  /// Step 3: 닉네임 설정
+  // Step 3: 닉네임 설정
   void setNickname(String name) {
     _nickname = name;
     notifyListeners();
@@ -106,16 +153,13 @@ class OnboardingProvider with ChangeNotifier {
     }
   }
   
-  /// Firebase에 사용자 프로필 저장
+  /// Firebase에 사용자 프로필 저장 및 완료 상태 업데이트
   Future<bool> saveUserProfile() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       
-      // ⭐️ [점검 포인트 1] User 객체(uid)가 없으면 Firestore 쓰기 불가 ⭐️
       if (user == null) {
-        if (kDebugMode) {
-          debugPrint('❌ 사용자 프로필 저장 실패: FirebaseAuth.instance.currentUser가 null입니다. 앱 시작 시 인증(예: 익명 로그인)이 필요합니다.');
-        }
+        if (kDebugMode) debugPrint('❌ 사용자 프로필 저장 실패: 사용자 인증 정보 없음.');
         return false;
       }
       
@@ -127,22 +171,25 @@ class OnboardingProvider with ChangeNotifier {
         characterEye: _characterEye,
         characterColor: _characterColor,
         createdAt: DateTime.now(),
+        // ⭐️ 핵심: 완료 플래그 추가 ⭐️
+        isOnboardingCompleted: true, 
       );
       
-      // ⭐️ [점검 포인트 2] Firestore 쓰기 작업 시도 ⭐️
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .set(profile.toFirestore());
       
+      // 로컬 상태 업데이트
+      _isOnboardingCompleted = true;
+      notifyListeners();
+      
       if (kDebugMode) {
-        debugPrint('✅ 사용자 프로필 저장 완료: ${user.uid}');
+        debugPrint('✅ 사용자 프로필 저장 및 온보딩 완료 처리: ${user.uid}');
       }
       
       return true;
     } catch (e) {
-      // ⭐️ [점검 포인트 3] 오류 처리 ⭐️
-      // (예: Firestore 권한 거부, 네트워크 오류, 데이터 형식 오류 등)
       if (kDebugMode) {
         debugPrint('❌ 사용자 프로필 저장 실패 (Firestore Write Error): $e');
       }
@@ -158,6 +205,7 @@ class OnboardingProvider with ChangeNotifier {
     _characterColor = 0;
     _nickname = '';
     _currentStep = 0;
+    _isOnboardingCompleted = false; // 초기화 시 완료 상태도 리셋
     notifyListeners();
   }
 }

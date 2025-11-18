@@ -1,30 +1,79 @@
 import 'package:flutter/material.dart';
-// 모델 및 컴포넌트 임포트 (올바른 경로 사용)
-import 'package:mitjul_app_new/models/post.dart';
-import 'package:mitjul_app_new/components/feed_card.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mitjul_app_new/constants/colors.dart'; // AppColors 사용 가정
 
-/// 홈 화면의 '피드' 탭에서 실제 게시물 목록을 보여주는 위젯입니다.
+/// 피드 화면 위젯: 상단 로고/아이콘과 피드 목록이 함께 스크롤됩니다.
 class FeedTab extends StatelessWidget {
   const FeedTab({super.key});
 
-  // Mock 데이터 리스트 생성 (실제로는 API 호출 또는 Firestore에서 가져와야 함)
-  List<Post> _generateMockPosts() {
-    // Post 모델에 정의된 Mock 생성자를 사용합니다.
-    return List.generate(10, (index) => Post.mock('post_$index'));
+  // 상단 로고와 아이콘 영역 (스크롤 영역의 첫 번째 항목이 됨)
+  Widget _buildHeader() {
+    return Padding(
+      // 상단 상태바 영역을 고려하여 패딩을 추가합니다.
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 10.0, bottom: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          // 로고 (assets/icons/logo.svg 가정)
+          SvgPicture.asset(
+            'assets/images/logo.svg', // 사용자님의 assets 경로로 가정
+            height: 30,
+          ),
+          // 알림 아이콘
+          GestureDetector(
+            onTap: () {
+              // 알림 버튼 클릭 동작
+              print('Alarm button tapped');
+            },
+            child: SvgPicture.asset(
+              'assets/icons/alram_off.svg', // 사용자님의 assets 경로로 가정
+              width: 28,
+              height: 28,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 임시 피드 아이템
+  Widget _buildFeedItem(int index) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Card(
+        elevation: 0.5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          height: 250,
+          alignment: Alignment.center,
+          child: Text(
+            '피드 아이템 $index',
+            style: const TextStyle(fontSize: 18, color: AppColors.grayscale40),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final mockPosts = _generateMockPosts();
-
-    return ListView.builder(
-      // Padding을 주면 AppBar 뒤로 스크롤되지 않습니다.
-      padding: EdgeInsets.zero, 
-      itemCount: mockPosts.length,
-      itemBuilder: (context, index) {
-        // FeedCard 컴포넌트를 사용하여 목록에 노출
-        return FeedCard(post: mockPosts[index]);
-      },
+    // Header와 피드 목록을 순서대로 배치하여 함께 스크롤되게 합니다.
+    return SafeArea(
+      // SafeArea를 사용하여 상단 노치 영역 아래에 콘텐츠가 시작되도록 합니다.
+      bottom: false, // 하단은 BottomNaviBar가 차지하므로 제외
+      child: ListView.builder(
+        // 상단 Header가 이미 패딩을 가지고 있으므로, ListView의 기본 패딩은 최소화합니다.
+        padding: EdgeInsets.zero, 
+        itemCount: 20 + 1, // Header + 20개의 피드 아이템
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            // 리스트의 첫 번째 항목으로 Header 위젯을 반환합니다.
+            return _buildHeader();
+          }
+          // 나머지 항목은 피드 아이템입니다.
+          return _buildFeedItem(index - 1);
+        },
+      ),
     );
   }
 }

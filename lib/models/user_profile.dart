@@ -14,6 +14,8 @@ class UserProfile {
   final int characterEye; // 선택한 캐릭터 눈
   final int characterColor; // 선택한 캐릭터 색상 팔레트
   final DateTime? createdAt; // 프로필 생성일
+  // ⭐️ [추가] OnboardingProvider에서 요구하는 온보딩 완료 플래그 ⭐️
+  final bool isOnboardingCompleted; 
 
   UserProfile({
     required this.userId,
@@ -28,6 +30,8 @@ class UserProfile {
     this.characterEye = -1,
     this.characterColor = 0,
     DateTime? createdAt,
+    // ⭐️ [추가] OnboardingProvider가 이 값을 전달할 때 오류가 나지 않도록 선언 ⭐️
+    required this.isOnboardingCompleted, 
   }) : createdAt = createdAt ?? DateTime.now(); // createdAt이 없으면 현재 시간으로 설정
 
   /// Firestore Map 데이터로부터 UserProfile 객체를 생성하는 팩토리 메서드입니다.
@@ -48,6 +52,8 @@ class UserProfile {
       characterEye: (json['characterEye'] as int?) ?? -1,
       characterColor: (json['characterColor'] as int?) ?? 0,
       createdAt: _parseDateTime(json['createdAt']), // Timestamp 또는 String 파싱
+      // ⭐️ [추가] Firestore에서 값을 읽어오고, 값이 없으면 기본값 false ⭐️
+      isOnboardingCompleted: (json['isOnboardingCompleted'] as bool?) ?? false, 
     );
   }
 
@@ -59,9 +65,6 @@ class UserProfile {
     if (value is String) return DateTime.tryParse(value);
     return null;
   }
-  
-  // Note: 일반적으로 firestore와 같은 외부 시스템에 저장할 때는 toFirestore()를 사용합니다.
-  // toJson()이 필요한 경우는 JSON API 통신 등 다른 용도가 있을 때입니다.
   
   /// UserProfile 객체를 Firestore에 저장할 수 있는 Map 형태로 변환합니다.
   Map<String, dynamic> toFirestore() {
@@ -82,6 +85,18 @@ class UserProfile {
           ? Timestamp.fromDate(createdAt!)
           : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(), // 마지막 업데이트 시간
+      // ⭐️ [추가] Firestore에 온보딩 완료 상태 저장 ⭐️
+      'isOnboardingCompleted': isOnboardingCompleted, 
+    };
+  }
+
+  /// 🌟🌟 [추가] Post 모델 등 다른 문서에 임베딩될 때 사용하는 간소화된 직렬화 메서드입니다.
+  Map<String, dynamic> toJson() {
+    return {
+      'userId': userId,
+      'nickname': nickname,
+      'profileImageUrl': profileImageUrl,
+      // 포스트 작성자 정보로 필요한 최소한의 필드만 포함
     };
   }
   
