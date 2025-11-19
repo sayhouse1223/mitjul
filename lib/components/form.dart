@@ -60,7 +60,7 @@ class _AppTextFieldState extends State<AppTextField> {
   Widget build(BuildContext context) {
     // 폰트사이즈 15R, 높이 50
     const double height = 50.0;
-    const double borderRadius = 4.0;
+    const double borderRadius = 8.0;
     
     // 1. 상태별 색상 결정
     final bool isFocused = _focusNode.hasFocus;

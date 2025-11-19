@@ -42,7 +42,7 @@ class AppButton extends StatelessWidget {
     final TextStyle labelStyle = isLarge 
         ? AppTextStyles.body16M // Large: 16M
         : AppTextStyles.body14R; // Small: 14R (Secondary 스타일을 위함)
-    final double borderRadius = 4.0;
+    final double borderRadius = 8.0;
 
     // 2. 타입 및 상태별 색상 결정
     Color activeBackgroundColor;
@@ -79,7 +79,7 @@ class AppButton extends StatelessWidget {
           borderColor = AppColors.primaryMinus10;
           spinnerColor = AppColors.primaryMinus10;
         } else {
-          borderColor = AppColors.primary0;
+          borderColor = AppColors.primaryMinus10;
           spinnerColor = AppColors.primary0;
         }
         break;
@@ -144,7 +144,7 @@ class AppButton extends StatelessWidget {
             width: (type == ButtonType.primaryLine || type == ButtonType.secondary) ? 1 : 0,
           ),
         ),
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
         // 비활성화 시 오버레이 효과 제거
         overlayColor: isDisabled ? Colors.transparent : null,
       ),

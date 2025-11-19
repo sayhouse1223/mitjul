@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mitjul_app_new/constants/colors.dart';
+import 'package:mitjul_app_new/constants/text_styles.dart';
 import 'package:mitjul_app_new/models/book.dart';
 
 class BookSearchResultItem extends StatelessWidget {
@@ -27,37 +28,29 @@ class BookSearchResultItem extends StatelessWidget {
     return safeUrl;
   }
 
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
       onTap: onTap != null ? () => onTap!(book) : null,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.grayscale20),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
               child: Image.network(
                 _getImageUrl(book.thumbnailUrl),
-                width: 60,
-                height: 88,
+                width: 80,
+                height: 118,
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
-                    width: 60,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: AppColors.grayscale10,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    width: 80,
+                    height: 118,
+                    color: AppColors.grayscale10,
                     child: Center(
                       child: SizedBox(
                         width: 20,
@@ -74,15 +67,10 @@ class BookSearchResultItem extends StatelessWidget {
                   );
                 },
                 errorBuilder: (context, error, stackTrace) {
-                  // Google Books 이미지 URL은 직접 접근이 제한될 수 있어
-                  // 에러 발생 시 placeholder 표시
                   return Container(
-                    width: 60,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: AppColors.grayscale10,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    width: 80,
+                    height: 118,
+                    color: AppColors.grayscale10,
                     child: const Icon(Icons.book, color: AppColors.grayscale40, size: 30),
                   );
                 },
@@ -93,32 +81,45 @@ class BookSearchResultItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 도서명
                   Text(
                     book.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.grayscale90,
+                    style: AppTextStyles.body16M.copyWith(
+                      color: AppColors.grayscale80,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 6),
+                  // 도서 부제목
+                  if (book.subtitle != null && book.subtitle!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      book.subtitle!,
+                      style: AppTextStyles.body14R.copyWith(
+                        color: AppColors.grayscale70,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  // 저자/역자
                   Text(
-                    book.authors?.join(', ') ?? '저자 정보 없음',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.grayscale50,
+                    book.authors != null && book.authors!.isNotEmpty
+                        ? book.authors!.join(' / ')
+                        : '저자 정보 없음',
+                    style: AppTextStyles.caption12R.copyWith(
+                      color: AppColors.grayscale60,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
+                  // 출판사
                   Text(
                     book.publisher ?? '출판사 정보 없음',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.grayscale40,
+                    style: AppTextStyles.caption12R.copyWith(
+                      color: AppColors.grayscale60,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

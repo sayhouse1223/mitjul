@@ -8,10 +8,12 @@ class BookSearchResultList extends StatelessWidget {
     super.key,
     required this.books,
     this.onBookTap,
+    this.scrollController,
   });
 
   final List<Book> books;
   final ValueChanged<Book>? onBookTap;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +27,14 @@ class BookSearchResultList extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      controller: scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: books.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const Divider(
+        height: 1,
+        thickness: 1,
+        color: AppColors.grayscale20,
+      ),
       itemBuilder: (context, index) {
         final book = books[index];
         return BookSearchResultItem(

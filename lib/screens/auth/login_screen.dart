@@ -4,6 +4,7 @@ import 'package:mitjul_app_new/constants/colors.dart';
 import 'package:mitjul_app_new/constants/text_styles.dart';
 import 'package:mitjul_app_new/services/auth_service.dart';
 import 'package:mitjul_app_new/screens/onboarding/onboarding_flow.dart';
+import 'package:mitjul_app_new/screens/home/home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -149,18 +150,22 @@ class LoginScreen extends StatelessWidget {
                   );
 
                   // 익명 로그인 실행
-                  final userCredential = await AuthService().signInAnonymously();
+                  final authService = AuthService();
+                  final userCredential = await authService.signInAnonymously();
                   
                   // 로딩 닫기
                   if (context.mounted) {
                     Navigator.of(context).pop();
                   }
 
-                  // 로그인 성공 시 온보딩 플로우로 이동
+                  // 비회원 로그인 성공 시 온보딩 없이 바로 메인으로 이동
                   if (userCredential != null && context.mounted) {
+                    if (kDebugMode) {
+                      debugPrint('비회원 로그인 성공: ${userCredential.user?.uid}');
+                    }
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (context) => const OnboardingFlow(),
+                        builder: (context) => const HomeScreen(),
                       ),
                     );
                   } else {

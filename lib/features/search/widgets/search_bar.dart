@@ -78,7 +78,7 @@ class _AppSearchBarState extends State<AppSearchBar> {
     return Container(
       decoration: BoxDecoration(
         color: widget.backgroundColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.grayscale20),
         boxShadow: [
           BoxShadow(

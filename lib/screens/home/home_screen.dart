@@ -47,45 +47,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 탭별로 다른 AppBar를 보여주기 위한 함수
-  PreferredSizeWidget _buildAppBar(int index) {
-    // 탭 인덱스가 2(등록)보다 크면 실제 화면 인덱스는 -1이 됩니다.
-    // FeedTab, SearchTab, PopularTab, MyPageTab의 실제 인덱스는 0, 1, 3, 4 입니다.
-    final actualIndex = index > 2 ? index - 1 : index;
-
-    // AppBar는 홈(피드) 화면(index 0)에만 로고와 알림 버튼을 표시합니다.
-    if (_selectedIndex == 0) {
+  PreferredSizeWidget? _buildAppBar(int index) {
+    // 모든 탭에서 공통 헤더(AppHeader)를 사용하므로 AppBar 제거
+    // 피드, 검색, 인기 피드 탭은 각각 내부에서 AppHeader를 처리
+    // 마이 페이지 탭만 필요시 AppBar 사용 가능
+    if (_selectedIndex == 4) {
+      // 마이 페이지 탭은 필요시 AppBar 사용
       return AppBar(
-        title: SvgPicture.asset(
-          'assets/logos/logo_mitjul.svg', // 로고 SVG 파일 경로 (추후 assets에 추가 필요)
-          height: 24,
+        title: Text(
+          '마이 페이지',
+          style: AppTextStyles.header.copyWith(fontSize: 18),
         ),
-        automaticallyImplyLeading: false, // 뒤로가기 버튼 제거
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
-            onPressed: () {
-              // TODO: 알림 화면으로 이동
-              debugPrint("알림 버튼 클릭");
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
       );
-    } 
+    }
     
-    // 나머지 탭들은 기본 AppBar를 사용하거나 각 탭 파일 내부에서 AppBar를 정의합니다.
-    // 여기서는 기본 AppBar로 Placeholder를 제공합니다.
-    return AppBar(
-      title: Text(
-        switch(_selectedIndex) {
-          1 => '검색',
-          3 => '인기 피드',
-          4 => '마이 페이지',
-          _ => '', // 2 (등록)는 버튼이므로 제외
-        },
-        style: AppTextStyles.header.copyWith(fontSize: 18),
-      ),
-    );
+    // 나머지 탭들은 공통 헤더를 사용하므로 AppBar 없음
+    return null;
   }
 
   @override

@@ -1,1 +1,40 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"mitjul-270ec","appId":"1:350847407157:android:5ee1caa4128a2b95038d7c","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"mitjul-270ec","appId":"1:350847407157:ios:cb2d498e671044a8038d7c","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"mitjul-270ec","configurations":{"android":"1:350847407157:android:5ee1caa4128a2b95038d7c","ios":"1:350847407157:ios:cb2d498e671044a8038d7c","web":"1:350847407157:web:46d48bfe6957ea61038d7c"}}}}}}
+
+
+{
+    "functions": {
+      "source": "functions",
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    },
+    "flutter": {
+      "platforms": {
+        "android": {
+          "default": {
+            "projectId": "mitjul-270ec",
+            "appId": "1:350847407157:android:5ee1caa4128a2b95038d7c",
+            "fileOutput": "android/app/google-services.json"
+          }
+        },
+        "ios": {
+          "default": {
+            "projectId": "mitjul-270ec",
+            "appId": "1:350847407157:ios:cb2d498e671044a8038d7c",
+            "uploadDebugSymbols": false,
+            "fileOutput": "ios/Runner/GoogleService-Info.plist"
+          }
+        },
+        "dart": {
+          "lib/firebase_options.dart": {
+            "projectId": "mitjul-270ec",
+            "configurations": {
+              "android": "1:350847407157:android:5ee1caa4128a2b95038d7c",
+              "ios": "1:350847407157:ios:cb2d498e671044a8038d7c",
+              "web": "1:350847407157:web:46d48bfe6957ea61038d7c"
+            }
+          }
+        }
+      }
+    }
+  }
