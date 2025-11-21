@@ -8,7 +8,8 @@ import 'package:mitjul_app_new/constants/text_styles.dart';
 import 'package:mitjul_app_new/screens/home/feed_tab.dart'; 
 import 'package:mitjul_app_new/screens/home/search_tab.dart'; 
 import 'package:mitjul_app_new/screens/home/popular_tab.dart'; 
-import 'package:mitjul_app_new/screens/home/my_page_tab.dart'; 
+import 'package:mitjul_app_new/screens/home/my_page_tab.dart';
+import 'package:mitjul_app_new/screens/post/gallery_picker_screen.dart'; 
 
 /// 메인 홈 화면 (Bottom Navigation Bar 포함)
 class HomeScreen extends StatefulWidget {
@@ -36,8 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     // ⭐️ [등록 버튼] 중앙 버튼(인덱스 2) 클릭 시 탭 전환 대신 등록 화면으로 이동 ⭐️
     if (index == 2) {
-      // TODO: 3단계에서 등록 화면(PostCreateScreen)으로 이동하는 로직을 추가해야 합니다.
-      debugPrint("게시물 등록 버튼 클릭됨!");
+      // 게시물 작성 플로우 시작: Step 1 - 갤러리 선택 (인스타그램 스타일)
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const GalleryPickerScreen(),
+        ),
+      );
       return; 
     }
 

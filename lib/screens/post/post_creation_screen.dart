@@ -4,9 +4,14 @@ import 'package:mitjul_app_new/services/post_service.dart';
 
 class PostCreationScreen extends StatefulWidget {
   final Book selectedBook;
+  final String? extractedText; // OCR로 추출된 텍스트 (선택사항)
 
   // 생성자에서 이전 화면에서 넘겨받은 Book 객체를 받습니다.
-  const PostCreationScreen({required this.selectedBook, super.key});
+  const PostCreationScreen({
+    required this.selectedBook,
+    this.extractedText,
+    super.key,
+  });
 
   @override
   State<PostCreationScreen> createState() => _PostCreationScreenState();

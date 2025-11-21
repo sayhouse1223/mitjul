@@ -1,11 +1,14 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:mitjul_app_new/models/post.dart'; // 기존 post.dart 파일 사용
 import 'package:mitjul_app_new/models/book.dart';
 import 'package:mitjul_app_new/models/user_profile.dart'; // UserProfile 모델 필요
 
 class PostService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // 포스팅을 Firestore에 저장하는 메서드
   Future<void> createPost({
@@ -51,6 +54,61 @@ class PostService {
       print('✅ 포스팅이 성공적으로 저장되었습니다. ID: ${docRef.id}');
     } on FirebaseException catch (e) {
       print('❌ Firestore 포스팅 저장 오류: ${e.message}');
+      throw Exception('포스팅 저장에 실패했습니다. (${e.code}) 다시 시도해 주세요.');
+    } catch (e) {
+      print('❌ 기타 오류: $e');
+      rethrow;
+    }
+  }
+
+  /// 카드 이미지와 함께 포스팅 생성 (새로운 플로우용)
+  Future<void> createPostWithImage({
+    required File cardImageFile,
+    required String caption,
+    required String extractedText,
+    required Book book,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('사용자가 인증되지 않았습니다. 로그인이 필요합니다.');
+    }
+
+    // 1. 현재 사용자 프로필 가져오기
+    final userProfileDoc = await _firestore.collection('users').doc(user.uid).get();
+    if (!userProfileDoc.exists || userProfileDoc.data() == null) {
+      throw Exception('사용자 프로필을 찾을 수 없습니다.');
+    }
+    final authorProfile = UserProfile.fromJson(userProfileDoc.data()!);
+
+    try {
+      // 2. Firebase Storage에 이미지 업로드
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = '${user.uid}_$timestamp.png';
+      final storageRef = _storage.ref().child('posts/$fileName');
+      
+      final uploadTask = await storageRef.putFile(cardImageFile);
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+      // 3. Post 모델 객체 생성
+      final newPost = Post(
+        postId: 'temp_id',
+        author: authorProfile,
+        quote: extractedText, // OCR로 추출된 문장
+        content: caption, // 사용자가 입력한 감상
+        category: '도서',
+        imageUrl: downloadUrl, // 업로드된 카드 이미지 URL
+        createdAt: DateTime.now(),
+        sourceTitle: book.title,
+        sourceAuthor: book.authors?.join(', ') ?? '저자 정보 없음',
+      );
+
+      // 4. Firestore에 저장
+      final docRef = await _firestore.collection('posts').add(newPost.toJson());
+      await docRef.update({'postId': docRef.id});
+
+      print('✅ 포스팅이 성공적으로 저장되었습니다. ID: ${docRef.id}');
+    } on FirebaseException catch (e) {
+      print('❌ Firebase 저장 오류: ${e.message}');
       throw Exception('포스팅 저장에 실패했습니다. (${e.code}) 다시 시도해 주세요.');
     } catch (e) {
       print('❌ 기타 오류: $e');

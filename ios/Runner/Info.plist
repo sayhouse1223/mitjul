@@ -57,5 +57,14 @@
 			</array>
 		</dict>
 	</array>
+	<!-- 카메라 및 갤러리 권한 설명 -->
+	<key>NSCameraUsageDescription</key>
+	<string>책의 문장을 촬영하여 텍스트를 추출하기 위해 카메라 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>갤러리에서 이미지를 선택하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>생성된 이미지를 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
+	<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
+	<true/>
 </dict>
 </plist>

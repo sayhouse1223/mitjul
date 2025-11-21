@@ -3,6 +3,15 @@ import 'package:mitjul_app_new/constants/colors.dart';
 
 class AppTextStyles {
   // Header
+
+  static const TextStyle header24 = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.normal,
+    letterSpacing: -0.5,
+    height: 32 / 24, // lineHeight / fontSize
+    color: AppColors.grayscale100,
+  );
+
   static const TextStyle header = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.normal,
