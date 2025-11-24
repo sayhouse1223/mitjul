@@ -47,6 +47,8 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> with WidgetsB
 
   /// 갤러리 이미지 로드
   Future<void> _loadGalleryImages() async {
+    print('🖼️ 갤러리 이미지 로드 시작');
+    
     if (mounted) {
       setState(() {
         _isLoading = true;
@@ -54,11 +56,17 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> with WidgetsB
     }
     
     try {
+      print('📸 권한 요청 시작');
       final PermissionState ps = await PhotoManager.requestPermissionExtend();
+      print('📸 권한 상태: ${ps.isAuth ? "허용됨" : "거부됨"}');
       
-      if (!mounted) return;
+      if (!mounted) {
+        print('⚠️ Widget이 dispose됨 (권한 체크 후)');
+        return;
+      }
       
       if (!ps.isAuth) {
+        print('❌ 권한이 거부되어 다이얼로그 표시');
         setState(() {
           _isLoading = false;
         });
@@ -66,14 +74,20 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> with WidgetsB
         return;
       }
 
+      print('📁 앨범 목록 가져오기 시작');
       final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
         type: RequestType.image,
         onlyAll: true,
       );
+      print('📁 앨범 개수: ${albums.length}');
 
-      if (!mounted) return;
+      if (!mounted) {
+        print('⚠️ Widget이 dispose됨 (앨범 로드 후)');
+        return;
+      }
 
       if (albums.isEmpty) {
+        print('⚠️ 앨범이 비어있음');
         setState(() {
           _isLoading = false;
         });
@@ -81,20 +95,30 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> with WidgetsB
       }
 
       final recentAlbum = albums.first;
+      print('📷 최근 앨범에서 이미지 가져오기: ${recentAlbum.name}');
+      
       final List<AssetEntity> media = await recentAlbum.getAssetListRange(
         start: 0,
         end: 100, // 최근 100개 이미지
       );
+      print('📷 로드된 이미지 개수: ${media.length}');
 
-      if (!mounted) return;
+      if (!mounted) {
+        print('⚠️ Widget이 dispose됨 (이미지 로드 후)');
+        return;
+      }
 
       setState(() {
         _mediaList = media;
         _selectedAsset = media.isNotEmpty ? media.first : null;
         _isLoading = false;
       });
-    } catch (e) {
-      print('갤러리 로드 오류: $e');
+      
+      print('✅ 갤러리 로드 완료');
+    } catch (e, stackTrace) {
+      print('❌ 갤러리 로드 오류: $e');
+      print('스택 트레이스: $stackTrace');
+      
       if (mounted) {
         setState(() {
           _isLoading = false;

@@ -41,6 +41,9 @@ class _CardEditingScreenState extends State<CardEditingScreen> {
   // 스티커 리스트
   List<Sticker> _stickers = [];
 
+  // 선택된 스티커 ID
+  String? _selectedStickerId;
+
   // 책 표지 색상 팔레트
   PaletteGenerator? _bookPalette;
 
@@ -119,6 +122,7 @@ class _CardEditingScreenState extends State<CardEditingScreen> {
         rotation: 0.0,
       );
       _stickers.add(sticker);
+      _selectedStickerId = sticker.id; // 추가한 스티커 선택
     });
   }
 
@@ -132,18 +136,42 @@ class _CardEditingScreenState extends State<CardEditingScreen> {
     });
   }
 
+  /// 스티커 선택
+  void _selectSticker(String stickerId) {
+    setState(() {
+      _selectedStickerId = stickerId;
+    });
+  }
+
+  /// 스티커 선택 해제
+  void _deselectSticker() {
+    setState(() {
+      _selectedStickerId = null;
+    });
+  }
+
   /// 스티커 삭제
   void _deleteSticker(String stickerId) {
     setState(() {
       _stickers.removeWhere((s) => s.id == stickerId);
+      if (_selectedStickerId == stickerId) {
+        _selectedStickerId = null;
+      }
     });
   }
 
   /// 카드 저장 및 다음 단계로 이동
   Future<void> _saveAndContinue() async {
+    // 이미지 캡처 전에 선택된 스티커 저장
+    final previousSelectedStickerId = _selectedStickerId;
+    
     setState(() {
       _isLoading = true;
+      _selectedStickerId = null; // 스티커 선택 해제 (핸들 숨김)
     });
+
+    // UI 업데이트를 위해 짧은 대기
+    await Future.delayed(const Duration(milliseconds: 100));
 
     try {
       // 카드를 이미지로 캡처
@@ -170,6 +198,11 @@ class _CardEditingScreenState extends State<CardEditingScreen> {
       }
     } catch (e) {
       if (mounted) {
+        // 오류 발생 시 이전 선택 상태 복원
+        setState(() {
+          _selectedStickerId = previousSelectedStickerId;
+        });
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('이미지 생성 중 오류가 발생했습니다: $e'),
@@ -199,41 +232,50 @@ class _CardEditingScreenState extends State<CardEditingScreen> {
         onRightAction: _isLoading ? null : _saveAndContinue,
         isRightButtonEnabled: !_isLoading,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // 1:1 캔버스 영역 (네비게이션 바로 아래, 여백 없이)
-          SizedBox(
-            width: screenWidth,
-            height: screenWidth, // 1:1 비율
-            child: RepaintBoundary(
-              key: _cardKey,
-              child: CardCanvas(
-                cardStyle: _cardStyle,
-                stickers: _stickers,
-                extractedText: widget.extractedText,
-                book: widget.selectedBook,
-                onStickerUpdate: _updateSticker,
-                onStickerDelete: _deleteSticker,
+          Column(
+            children: [
+              // 1:1 캔버스 영역 (네비게이션 바로 아래, 여백 없이)
+              SizedBox(
+                width: screenWidth,
+                height: screenWidth, // 1:1 비율
+                child: RepaintBoundary(
+                  key: _cardKey,
+                  child: GestureDetector(
+                    onTap: _deselectSticker, // 빈 공간 클릭 시 선택 해제
+                    child: CardCanvas(
+                      cardStyle: _cardStyle,
+                      stickers: _stickers,
+                      selectedStickerId: _selectedStickerId,
+                      extractedText: widget.extractedText,
+                      book: widget.selectedBook,
+                      onStickerUpdate: _updateSticker,
+                      onStickerSelect: _selectSticker,
+                      onStickerDelete: _deleteSticker,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
 
-          // 편집 패널
-          Expanded(
-            child: EditingPanel(
-              selectedTab: _selectedTab,
-              cardStyle: _cardStyle,
-              bookPalette: _bookPalette,
-              bookCoverUrl: widget.selectedBook.thumbnailUrl,
-              onTabChange: (tab) {
-                setState(() {
-                  _selectedTab = tab;
-                });
-              },
-              onBackgroundTypeChange: _updateBackgroundType,
-              onTextStyleChange: _updateTextStyle,
-              onStickerAdd: _addSticker,
-            ),
+              // 편집 패널
+              Expanded(
+                child: EditingPanel(
+                  selectedTab: _selectedTab,
+                  cardStyle: _cardStyle,
+                  bookPalette: _bookPalette,
+                  bookCoverUrl: widget.selectedBook.thumbnailUrl,
+                  onTabChange: (tab) {
+                    setState(() {
+                      _selectedTab = tab;
+                    });
+                  },
+                  onBackgroundTypeChange: _updateBackgroundType,
+                  onTextStyleChange: _updateTextStyle,
+                  onStickerAdd: _addSticker,
+                ),
+              ),
+            ],
           ),
 
           // 로딩 오버레이

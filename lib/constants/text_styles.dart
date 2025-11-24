@@ -29,6 +29,14 @@ class AppTextStyles {
     color: AppColors.grayscale100,
   );
   
+  
+  static const TextStyle body16B = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    height: 24 / 16,
+    color: AppColors.grayscale100,
+  );
+
   static const TextStyle body16M = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w500,
@@ -54,6 +62,12 @@ class AppTextStyles {
     fontSize: 15,
     fontWeight: FontWeight.normal,
     height: 23 / 15,
+    color: AppColors.grayscale100,
+  );
+  static const TextStyle body14B = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    height: 22 / 14,
     color: AppColors.grayscale100,
   );
 

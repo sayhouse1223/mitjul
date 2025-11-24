@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:mitjul_app_new/components/app_header.dart';
 import 'package:mitjul_app_new/constants/colors.dart';
 import 'package:mitjul_app_new/constants/text_styles.dart';
@@ -35,8 +36,7 @@ class _OcrExtractionScreenState extends State<OcrExtractionScreen> {
     _extractText();
   }
 
-  /// 텍스트 추출 (수동 입력)
-  /// TODO: 서버 사이드 OCR API 연동 (Google Cloud Vision API 추천)
+  /// Google ML Kit을 사용한 텍스트 추출
   Future<void> _extractText() async {
     setState(() {
       _isProcessing = true;
@@ -44,21 +44,46 @@ class _OcrExtractionScreenState extends State<OcrExtractionScreen> {
       _errorMessage = null;
     });
 
-    // 로딩 시뮬레이션
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    String extractedText = '';
-    if (widget.existingText != null && widget.existingText!.isNotEmpty) {
-      extractedText = widget.existingText!;
+    try {
+      // 기존 텍스트가 있으면 추가 모드
+      String extractedText = '';
+      if (widget.existingText != null && widget.existingText!.isNotEmpty) {
+        extractedText = widget.existingText! + '\n';
+      }
+
+      // Google ML Kit Text Recognition (최신 API)
+      final textRecognizer = TextRecognizer(script: TextRecognitionScript.korean);
+      final inputImage = InputImage.fromFile(widget.imageFile);
+      final recognizedText = await textRecognizer.processImage(inputImage);
+
+      print('📝 OCR 결과: ${recognizedText.text}');
+
+      if (recognizedText.text.isEmpty) {
+        setState(() {
+          _isProcessing = false;
+          _hasError = true;
+          _errorMessage = '이미지에서 텍스트를 찾을 수 없습니다.\n직접 입력해주세요.';
+          _textController.text = extractedText;
+        });
+      } else {
+        extractedText += recognizedText.text;
+        setState(() {
+          _isProcessing = false;
+          _textController.text = extractedText;
+        });
+      }
+
+      // 리소스 정리
+      textRecognizer.close();
+    } catch (e) {
+      print('❌ OCR 오류: $e');
+      setState(() {
+        _isProcessing = false;
+        _hasError = true;
+        _errorMessage = 'OCR 처리 중 오류가 발생했습니다.\n직접 입력해주세요.';
+        _textController.text = widget.existingText ?? '';
+      });
     }
-    
-    _textController.text = extractedText;
-    
-    setState(() {
-      _isProcessing = false;
-      _hasError = true;
-      _errorMessage = '이미지를 보고 텍스트를 직접 입력해주세요.\n\n💡 TIP: 서버 사이드 OCR API를 연동하면\n자동 텍스트 추출이 가능합니다.';
-    });
   }
 
   /// 다음 페이지 추가 기능 (일단 비활성화 - 나중에 추가 가능)

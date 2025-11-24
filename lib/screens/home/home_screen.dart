@@ -37,12 +37,19 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     // ⭐️ [등록 버튼] 중앙 버튼(인덱스 2) 클릭 시 탭 전환 대신 등록 화면으로 이동 ⭐️
     if (index == 2) {
-      // 게시물 작성 플로우 시작: Step 1 - 갤러리 선택 (인스타그램 스타일)
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const GalleryPickerScreen(),
-        ),
-      );
+      print('➕ + 버튼 클릭됨, 갤러리 화면으로 이동');
+      
+      try {
+        // 게시물 작성 플로우 시작: Step 1 - 갤러리 선택 (인스타그램 스타일)
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const GalleryPickerScreen(),
+          ),
+        );
+      } catch (e, stackTrace) {
+        print('❌ 갤러리 화면 이동 오류: $e');
+        print('스택 트레이스: $stackTrace');
+      }
       return; 
     }
 

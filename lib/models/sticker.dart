@@ -38,18 +38,11 @@ class Sticker {
 /// 프리셋 스티커 목록
 class StickerPresets {
   static List<String> getAvailableStickers() {
-    // assets/images/ 폴더에서 스티커로 사용할 수 있는 이미지들
-    // 실제 프로젝트에 맞게 수정 필요
-    return [
-      'assets/images/character_body_1.svg',
-      'assets/images/character_body_2.svg',
-      'assets/images/character_body_3.svg',
-      'assets/images/character_body_4.svg',
-      'assets/images/character_eye_1.svg',
-      'assets/images/character_eye_2.svg',
-      'assets/images/character_eye_3.svg',
-      'assets/images/character_eye_4.svg',
-    ];
+    // assets/sticker/ 폴더의 스티커 이미지들 (Sticker01~29.png)
+    return List.generate(
+      29,
+      (index) => 'assets/sticker/Sticker${(index + 1).toString().padLeft(2, '0')}.png',
+    );
   }
 }
 

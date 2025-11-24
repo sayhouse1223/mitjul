@@ -9,6 +9,7 @@ import 'package:mitjul_app_new/models/sticker.dart';
 import 'package:mitjul_app_new/screens/post/card_editing_screen.dart';
 import 'package:mitjul_app_new/services/color_extraction_service.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:mitjul_app_new/components/selection_button.dart';
 
 /// 카드 편집 패널 (하단 탭)
 /// 
@@ -51,10 +52,20 @@ class EditingPanel extends StatelessWidget {
           _buildTabBar(),
 
           // 선택된 탭의 컨텐츠
-          Container(
-            height: 200,
-            padding: const EdgeInsets.all(16.0),
-            child: _buildTabContent(context),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: 220, // 최대 높이 제한
+              minHeight: 0,   // 최소 높이는 0 (내용에 맞춰)
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 16.0,
+                bottom: 20.0, // 하단 여백 최소화
+              ),
+              child: _buildTabContent(context),
+            ),
           ),
         ],
       ),
@@ -290,81 +301,64 @@ class EditingPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('텍스트 크기', style: AppTextStyles.body14M),
+        Text('텍스트 크기', style: AppTextStyles.body14M.copyWith(color: AppColors.grayscale70)),
         const SizedBox(height: 12),
         Row(
           children: [
-            _buildTextSizeOption('Small', TextSize.small),
+            SelectionButton(
+              label: 'Small',
+              isSelected: cardStyle.textSize == TextSize.small,
+              onTap: () => onTextStyleChange(size: TextSize.small),
+            ),
             const SizedBox(width: 8),
-            _buildTextSizeOption('Medium', TextSize.medium),
+            SelectionButton(
+              label: 'Medium',
+              isSelected: cardStyle.textSize == TextSize.medium,
+              onTap: () => onTextStyleChange(size: TextSize.medium),
+            ),
             const SizedBox(width: 8),
-            _buildTextSizeOption('Large', TextSize.large),
+            SelectionButton(
+              label: 'Large',
+              isSelected: cardStyle.textSize == TextSize.large,
+              onTap: () => onTextStyleChange(size: TextSize.large),
+            ),
             const SizedBox(width: 8),
-            _buildTextSizeOption('X-Large', TextSize.xLarge),
+            SelectionButton(
+              label: 'X-Large',
+              isSelected: cardStyle.textSize == TextSize.xLarge,
+              onTap: () => onTextStyleChange(size: TextSize.xLarge),
+            ),
           ],
         ),
         const SizedBox(height: 16),
-        Text('텍스트 색상', style: AppTextStyles.body14M),
-        const SizedBox(height: 8),
-        Expanded(
-          child: GridView.builder(
-            scrollDirection: Axis.horizontal,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: ColorExtractionService.getTextColorPalette().length,
-            itemBuilder: (context, index) {
-              final color = ColorExtractionService.getTextColorPalette()[index];
-              return GestureDetector(
-                onTap: () => onTextStyleChange(color: color),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: cardStyle.textColor == color 
-                          ? AppColors.primary0 
-                          : AppColors.grayscale30,
-                      width: cardStyle.textColor == color ? 3 : 1,
-                    ),
+        Text('텍스트 컬러', style: AppTextStyles.body14M.copyWith(color: AppColors.grayscale70)),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8, // 가로 간격
+          runSpacing: 8, // 세로 간격
+          children: ColorExtractionService.getTextColorPalette().map((color) {
+            final isSelected = cardStyle.textColor == color;
+            return GestureDetector(
+              onTap: () => onTextStyleChange(color: color),
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected 
+                        ? AppColors.primary0 
+                        : AppColors.grayscale20,
+                    width: 2,
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          }).toList(),
         ),
+        const SizedBox(height: 16),
       ],
-    );
-  }
-
-  /// 텍스트 크기 옵션
-  Widget _buildTextSizeOption(String label, TextSize size) {
-    final isSelected = cardStyle.textSize == size;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onTextStyleChange(size: size),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary0.withOpacity(0.1) : AppColors.grayscale10,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected ? AppColors.primary0 : AppColors.grayscale20,
-              width: 1.5,
-            ),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.caption12R.copyWith(
-              color: isSelected ? AppColors.primary0 : AppColors.grayscale70,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -372,50 +366,42 @@ class EditingPanel extends StatelessWidget {
   Widget _buildStickerTab() {
     final availableStickers = StickerPresets.getAvailableStickers();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('스티커 선택', style: AppTextStyles.body14M),
-        const SizedBox(height: 8),
-        Text(
-          '스티커를 길게 눌러 삭제할 수 있습니다',
-          style: AppTextStyles.caption12R.copyWith(color: AppColors.grayscale60),
-        ),
-        const SizedBox(height: 12),
-        Expanded(
-          child: GridView.builder(
-            scrollDirection: Axis.horizontal,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: availableStickers.length,
-            itemBuilder: (context, index) {
-              final stickerPath = availableStickers[index];
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('스티커 선택', style: AppTextStyles.body14M.copyWith(color: AppColors.grayscale70)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: availableStickers.map((stickerPath) {
               return GestureDetector(
                 onTap: () => onStickerAdd(stickerPath),
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 78,
+                  height: 78,
                   decoration: BoxDecoration(
                     color: AppColors.grayscale10,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(4),
                     border: Border.all(
                       color: AppColors.grayscale20,
-                      width: 1,
+                      width: 2,
                     ),
                   ),
-                  child: Image.asset(
-                    stickerPath,
-                    fit: BoxFit.contain,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Image.asset(
+                      stickerPath,
+                      fit: BoxFit.cover, // 박스를 가득 채움
+                    ),
                   ),
                 ),
               );
-            },
+            }).toList(),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

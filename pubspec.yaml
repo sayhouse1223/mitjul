@@ -48,6 +48,9 @@ dependencies:
   image_picker: ^1.0.7
   photo_manager: ^3.5.0
   
+  # OCR (텍스트 인식)
+  google_mlkit_text_recognition: ^0.15.0
+  
   # 이미지 처리 및 합성
   image: ^4.1.7
   
@@ -103,6 +106,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/fonts/
+    - assets/sticker/
 
   # 폰트 설정 섹션 (가장 중요)
   fonts:

@@ -6,6 +6,7 @@ import 'package:mitjul_app_new/constants/text_styles.dart';
 import 'package:mitjul_app_new/models/book.dart';
 import 'package:mitjul_app_new/models/card_style.dart';
 import 'package:mitjul_app_new/models/sticker.dart';
+import 'package:mitjul_app_new/screens/post/widgets/interactive_sticker.dart';
 
 /// 1:1 비율의 카드 캔버스
 /// 
@@ -16,41 +17,58 @@ import 'package:mitjul_app_new/models/sticker.dart';
 class CardCanvas extends StatelessWidget {
   final CardStyle cardStyle;
   final List<Sticker> stickers;
+  final String? selectedStickerId;
   final String extractedText;
   final Book book;
   final Function(Sticker) onStickerUpdate;
+  final Function(String) onStickerSelect;
   final Function(String) onStickerDelete;
 
   const CardCanvas({
     super.key,
     required this.cardStyle,
     required this.stickers,
+    this.selectedStickerId,
     required this.extractedText,
     required this.book,
     required this.onStickerUpdate,
+    required this.onStickerSelect,
     required this.onStickerDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      // overflow: hidden 처리
-      child: Stack(
-        children: [
-          // Layer 1: 배경
-          Positioned.fill(
-            child: _buildBackground(),
-          ),
+    return Stack(
+      clipBehavior: Clip.none, // 스티커 핸들이 잘리지 않도록 오버플로우 허용
+      children: [
+        // ClipRect로 배경, 텍스트, 책 정보만 잘라냄
+        Positioned.fill(
+          child: ClipRect(
+            child: Stack(
+              children: [
+                // Layer 1: 배경
+                Positioned.fill(
+                  child: _buildBackground(),
+                ),
 
-          // Layer 2: 스티커들
-          ...stickers.map((sticker) => _buildSticker(sticker)),
-
-          // Layer 3: 텍스트 + 책 정보
-          Positioned.fill(
-            child: _buildTextAndBookInfo(),
+                // Layer 3: 텍스트 + 책 정보
+                Positioned.fill(
+                  child: _buildTextAndBookInfo(),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+
+        // Layer 2: 스티커들 (ClipRect 밖에서 오버플로우 허용)
+        ...stickers.map((sticker) => InteractiveSticker(
+          sticker: sticker,
+          isSelected: sticker.id == selectedStickerId,
+          onUpdate: onStickerUpdate,
+          onTap: () => onStickerSelect(sticker.id),
+          onDelete: () => onStickerDelete(sticker.id),
+        )),
+      ],
     );
   }
 
@@ -104,48 +122,6 @@ class CardCanvas extends StatelessWidget {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [Color(0xFFEEEEEE), Color(0xFFF6F6F6), Color(0xFFDADADA)],
-    );
-  }
-
-  /// Layer 2: 스티커
-  Widget _buildSticker(Sticker sticker) {
-    return Positioned(
-      left: sticker.position.dx,
-      top: sticker.position.dy,
-      child: GestureDetector(
-        onPanUpdate: (details) {
-          final updatedSticker = sticker.copyWith(
-            position: Offset(
-              sticker.position.dx + details.delta.dx,
-              sticker.position.dy + details.delta.dy,
-            ),
-          );
-          onStickerUpdate(updatedSticker);
-        },
-        onLongPress: () {
-          // 스티커 삭제
-          onStickerDelete(sticker.id);
-        },
-        child: Transform.rotate(
-          angle: sticker.rotation,
-          child: Transform.scale(
-            scale: sticker.size,
-            child: SizedBox(
-              width: 80,
-              height: 80,
-              child: sticker.assetPath.endsWith('.svg')
-                  ? SvgPicture.asset(
-                      sticker.assetPath,
-                      fit: BoxFit.contain,
-                    )
-                  : Image.asset(
-                      sticker.assetPath,
-                      fit: BoxFit.contain,
-                    ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
